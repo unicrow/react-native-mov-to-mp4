@@ -12,30 +12,28 @@ RCT_EXPORT_MODULE()
 
 RCT_EXPORT_METHOD(convertMovToMp4: (NSString*)filename
                   toPath:(NSString*)outputPath
+                  quality:(NSString*)quality
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    // Your implementation here
-
-
-    NSString *docDir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-
-
-
-
-
+    NSString *docDir = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0];
 
     NSURL *ouputURL2 = [NSURL fileURLWithPath:[docDir stringByAppendingPathComponent:outputPath]];
     //NSLog(@"fsdf %@", ouputURL2);
     NSString *newFile = [ouputURL2 absoluteString];
     NSURL *urlFile = [NSURL fileURLWithPath:filename];
     AVURLAsset *avAsset = [AVURLAsset URLAssetWithURL:urlFile options:nil];
-    NSArray *compatiblePresets = [AVAssetExportSession
-                                  exportPresetsCompatibleWithAsset:avAsset];
-    AVAssetExportSession *exportSession = [[AVAssetExportSession alloc]initWithAsset:avAsset presetName:AVAssetExportPresetHighestQuality];
+    
+    // Video quality list
+    NSDictionary* qualities = @{
+        @"low": AVAssetExportPresetLowQuality,
+        @"medium": AVAssetExportPresetMediumQuality,
+        @"high": AVAssetExportPresetHighestQuality
+    };
+    
+    AVAssetExportSession *exportSession = [[AVAssetExportSession alloc] initWithAsset:avAsset presetName:qualities[quality]];
     //AVAssetExportPresetMediumQuality
     NSString* domain = @"MovToMp4";
-    NSString* documentsDirectory=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
     exportSession.outputURL = ouputURL2;
     //set the output file format if you want to make it in other file format (ex .3gp)
     exportSession.outputFileType = AVFileTypeMPEG4;
@@ -70,46 +68,7 @@ RCT_EXPORT_METHOD(convertMovToMp4: (NSString*)filename
             }
         }
     }];
-
-
-    //[self convertVideoToMP4AndFixMooV:filename toPath:docDir];
 }
-
--(void) convertVideoToMP4AndFixMooV: (NSString*)filename toPath:(NSString*)outputPath
-{
-
-    NSURL *url = [NSURL fileURLWithPath:filename];
-    AVAsset *avAsset = [AVURLAsset URLAssetWithURL:url options:nil];
-
-
-    AVAssetExportSession *exportSession = [AVAssetExportSession
-                                           exportSessionWithAsset:avAsset
-                                           presetName:AVAssetExportPresetPassthrough];
-
-
-    exportSession.outputURL = [NSURL fileURLWithPath:outputPath];
-    exportSession.outputFileType = AVFileTypeAppleM4V;
-
-
-    // This should move the moov atom before the mdat atom,
-    // hence allow playback before the entire file is downloaded
-    exportSession.shouldOptimizeForNetworkUse = YES;
-
-
-    [exportSession exportAsynchronouslyWithCompletionHandler:
-     ^{
-
-         if (AVAssetExportSessionStatusCompleted == exportSession.status) {}
-         else if (AVAssetExportSessionStatusFailed == exportSession.status) {
-             NSLog(@"AVAssetExportSessionStatusFailed");
-         }
-         else
-         {
-             NSLog(@"Export Session Status: %d", exportSession.status);
-         }
-     }];
-}
-
 
 
 @end
