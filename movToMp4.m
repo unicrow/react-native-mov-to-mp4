@@ -40,7 +40,6 @@ RCT_EXPORT_METHOD(convertMovToMp4: (NSString*)filename
     exportSession.shouldOptimizeForNetworkUse = YES;
 
     [exportSession exportAsynchronouslyWithCompletionHandler:^{
-        [[NSFileManager defaultManager] removeItemAtURL:filename error:nil];
         switch ([exportSession status])
         {
             case AVAssetExportSessionStatusFailed:
